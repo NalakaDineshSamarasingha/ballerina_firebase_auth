@@ -25,17 +25,8 @@ public client isolated class Client {
     }
 
     isolated function getServiceAccount(string path) returns ServiceAccount|error {
-
-        json|io:Error serviceAccountFileInput = io:fileReadJson(path);
-        if serviceAccountFileInput is io:Error {
-            error e = serviceAccountFileInput;
-            log:printError(e.message());
-            return e;
-        }
-        if serviceAccountFileInput is json {
-            ServiceAccount serviceAccount = check serviceAccountFileInput.cloneWithType(ServiceAccount);
-            return serviceAccount;
-        }
+        json serviceAccountFileInput = check io:fileReadJson(path);
+        return check serviceAccountFileInput.cloneWithType(ServiceAccount);
     }
 
     isolated function createPrivateKey() returns error? {
@@ -46,11 +37,7 @@ public client isolated class Client {
             }
             string[] privateKeyLine = re `\n`.split(serviceAccount.private_key);
             stream<string, io:Error?> lineStream = privateKeyLine.toStream();
-            io:Error? result = io:fileWriteLinesFromStream(self.PRIVATE_KEY_PATH, lineStream);
-
-            if (result is io:Error) {
-                log:printError(result.message());
-            }
+            check io:fileWriteLinesFromStream(self.PRIVATE_KEY_PATH, lineStream);
         }
 
     }
